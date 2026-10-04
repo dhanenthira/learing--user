@@ -1,0 +1,64 @@
+import 'package:flutter/material.dart';
+
+class AppIcons {
+  static const IconData home = Icons.home_rounded;
+  static const IconData bookOpen = Icons.menu_book_rounded;
+  static const IconData brain = Icons.psychology_rounded;
+  static const IconData code2 = Icons.code_rounded;
+  static const IconData clipboardCheck = Icons.assignment_turned_in_rounded;
+  static const IconData swords = Icons.sports_kabaddi_rounded;
+  static const IconData users = Icons.group_rounded;
+  static const IconData trophy = Icons.emoji_events_rounded;
+  static const IconData barChart2 = Icons.bar_chart_rounded;
+  static const IconData user = Icons.person_rounded;
+  static const IconData userRound = Icons.person_rounded;
+  static const IconData key = Icons.vpn_key_rounded;
+  static const IconData keyRound = Icons.vpn_key_rounded;
+  static const IconData bell = Icons.notifications_outlined;
+  static const IconData settings = Icons.settings_outlined;
+  static const IconData search = Icons.search_rounded;
+  static const IconData calendar = Icons.calendar_month_rounded;
+  static const IconData flame = Icons.local_fire_department_rounded;
+  static const IconData award = Icons.military_tech_rounded;
+  static const IconData logOut = Icons.logout_rounded;
+  static const IconData layoutDashboard = Icons.dashboard_rounded;
+  static const IconData helpCircle = Icons.help_outline_rounded;
+  static const IconData pieChart = Icons.pie_chart_outline_rounded;
+  static const IconData check = Icons.check_rounded;
+  static const IconData checkCircle = Icons.check_circle_rounded;
+  static const IconData checkCircle2 = Icons.check_circle_rounded;
+  static const IconData checkCheck = Icons.done_all_rounded;
+  static const IconData circle = Icons.circle_outlined;
+  static const IconData play = Icons.play_arrow_rounded;
+  static const IconData playCircle = Icons.play_circle_fill_rounded;
+  static const IconData sparkles = Icons.auto_awesome_rounded;
+  static const IconData plus = Icons.add_rounded;
+  static const IconData plusCircle = Icons.add_circle_outline_rounded;
+  static const IconData uploadCloud = Icons.cloud_upload_rounded;
+  static const IconData rotateCcw = Icons.restart_alt_rounded;
+  static const IconData trash2 = Icons.delete_outline_rounded;
+  static const IconData x = Icons.close_rounded;
+  static const IconData arrowLeft = Icons.arrow_back_rounded;
+  static const IconData copy = Icons.copy_rounded;
+  static const IconData target = Icons.track_changes_rounded;
+  static const IconData clock = Icons.access_time_rounded;
+  static const IconData alertCircle = Icons.error_outline_rounded;
+  static const IconData info = Icons.info_outline_rounded;
+  static const IconData school = Icons.school_rounded;
+  static const IconData mail = Icons.mail_outline_rounded;
+  static const IconData lock = Icons.lock_outline_rounded;
+  static const IconData layers = Icons.layers_rounded;
+  static const IconData cpu = Icons.memory_rounded;
+  static const IconData globe = Icons.public_rounded;
+  static const IconData chevronRight = Icons.chevron_right_rounded;
+  static const IconData square = Icons.check_box_outline_blank_rounded;
+  static const IconData checkSquare = Icons.check_box_rounded;
+  static const IconData messageSquare = Icons.chat_bubble_outline_rounded;
+  static const IconData shieldAlert = Icons.security_rounded;
+  static const IconData activity = Icons.show_chart_rounded;
+  static const IconData moon = Icons.dark_mode_outlined;
+  static const IconData sun = Icons.light_mode_outlined;
+}
+
+// Global alias for compatibility
+typedef LucideIcons = AppIcons;
