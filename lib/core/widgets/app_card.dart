@@ -105,6 +105,11 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+    final mutedTextColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
+    final progressTrackColor = isDark ? AppColors.border : AppColors.lightBorder;
+
     return AppCard(
       padding: const EdgeInsets.all(16),
       onTap: onTap,
@@ -131,7 +136,7 @@ class StatCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: subtitle!.startsWith('+') ? AppColors.success : AppColors.textMuted,
+                      color: subtitle!.startsWith('+') ? AppColors.success : mutedTextColor,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -142,19 +147,19 @@ class StatCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.space3),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.textMuted,
+              color: mutedTextColor,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: AppSpacing.space1),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: primaryTextColor,
               letterSpacing: -0.5,
             ),
           ),
@@ -165,7 +170,7 @@ class StatCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 5,
-                backgroundColor: AppColors.border,
+                backgroundColor: progressTrackColor,
                 valueColor: AlwaysStoppedAnimation<Color>(iconColor),
               ),
             ),
@@ -175,3 +180,4 @@ class StatCard extends StatelessWidget {
     );
   }
 }
+

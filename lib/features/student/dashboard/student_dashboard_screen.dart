@@ -28,6 +28,9 @@ class StudentDashboardScreen extends ConsumerWidget {
     final user = authState.user;
 
     final isMob = ResponsiveLayout.isMobile(context);
+    final primaryTextColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+    final secondaryTextColor = isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+    final mutedTextColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
 
     Widget content = SingleChildScrollView(
       padding: EdgeInsets.symmetric(
@@ -39,7 +42,7 @@ class StudentDashboardScreen extends ConsumerWidget {
         children: [
           // 1. Welcome Section
           AppCard(
-            backgroundColor: AppColors.surfaceElevated,
+            isElevated: true,
             child: Row(
               children: [
                 Expanded(
@@ -48,33 +51,35 @@ class StudentDashboardScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            "Welcome back, ${user?.name ?? 'Alex'}!",
-                            style: AppTypography.h2(context, color: AppColors.textPrimary),
+                          Flexible(
+                            child: Text(
+                              "Welcome back, ${user?.name ?? 'Alex'}!",
+                              style: AppTypography.h2(context, color: primaryTextColor),
+                            ),
                           ),
                           const SizedBox(width: AppSpacing.space3),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.15),
+                              color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.1),
                               borderRadius: AppRadii.badgeRadius,
                               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
                             ),
                             child: Text(
                               user?.studentId ?? "CA-2026-9042",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.primaryLight,
+                                color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
                               ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.space2),
-                      const Text(
+                      Text(
                         "You're on a 14-day learning streak! Solve today's technical practice and climb the leaderboard.",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        style: TextStyle(color: secondaryTextColor, fontSize: 14),
                       ),
                       const SizedBox(height: AppSpacing.space4),
                       Wrap(
@@ -103,7 +108,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                     width: 110,
                     height: 110,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.08),
+                      color: AppColors.primary.withOpacity(isDark ? 0.08 : 0.06),
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
                     ),
@@ -182,11 +187,11 @@ class StudentDashboardScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text("Today's Practice Sets", style: AppTypography.h3(context, color: AppColors.textPrimary)),
+                          child: Text("Today's Practice Sets", style: AppTypography.h3(context, color: primaryTextColor)),
                         ),
                         TextButton(
                           onPressed: () => context.go("/student/practice"),
-                          child: const Text("View All →", style: TextStyle(color: AppColors.primary)),
+                          child: Text("View All →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
                         ),
                       ],
                     ),
@@ -197,6 +202,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                         children: [
                           _buildPracticeRow(
                             context,
+                            isDark: isDark,
                             title: "Daily Aptitude Challenge #42",
                             topic: "Time & Distance • Profit & Loss",
                             duration: "10 mins",
@@ -207,6 +213,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                           const Divider(height: 24),
                           _buildPracticeRow(
                             context,
+                            isDark: isDark,
                             title: "Daily Technical Challenge #42",
                             topic: "DSA Complexity • Computer Networks",
                             duration: "8 mins",
@@ -217,6 +224,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                           const Divider(height: 24),
                           _buildPracticeRow(
                             context,
+                            isDark: isDark,
                             title: "Communication Practice",
                             topic: "Corporate Etiquette & Verbal Reasoning",
                             duration: "15 mins",
@@ -235,11 +243,11 @@ class StudentDashboardScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text("Recommended Coding Problem", style: AppTypography.h3(context, color: AppColors.textPrimary)),
+                          child: Text("Recommended Coding Problem", style: AppTypography.h3(context, color: primaryTextColor)),
                         ),
                         TextButton(
                           onPressed: () => context.go("/student/coding"),
-                          child: const Text("Open Arena →", style: TextStyle(color: AppColors.primary)),
+                          child: Text("Open Arena →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
                         ),
                       ],
                     ),
@@ -253,7 +261,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.12),
+                              color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.1),
                               borderRadius: AppRadii.inputRadius,
                             ),
                             child: const Icon(LucideIcons.code2, color: AppColors.primary, size: 24),
@@ -267,21 +275,21 @@ class StudentDashboardScreen extends ConsumerWidget {
                                   children: [
                                     Text(
                                       "Two Sum Target Indices",
-                                      style: AppTypography.h4(context, color: AppColors.textPrimary),
+                                      style: AppTypography.h4(context, color: primaryTextColor),
                                     ),
                                     const SizedBox(width: 8),
                                     AppBadge.difficulty("easy"),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
+                                Text(
                                   "Arrays & Hash Table • 82.4% Acceptance • 450 Submissions",
-                                  style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                                  style: TextStyle(color: mutedTextColor, fontSize: 13),
                                 ),
                               ],
                             ),
                           ),
-                          const Icon(LucideIcons.chevronRight, color: AppColors.textMuted),
+                          Icon(LucideIcons.chevronRight, color: mutedTextColor),
                         ],
                       ),
                     ),
@@ -301,11 +309,11 @@ class StudentDashboardScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: Text("Leaderboard", style: AppTypography.h3(context, color: AppColors.textPrimary)),
+                            child: Text("Leaderboard", style: AppTypography.h3(context, color: primaryTextColor)),
                           ),
                           TextButton(
                             onPressed: () => context.go("/student/leaderboard"),
-                            child: const Text("Full Rankings →", style: TextStyle(color: AppColors.primary)),
+                            child: Text("Full Rankings →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
                           ),
                         ],
                       ),
@@ -314,13 +322,13 @@ class StudentDashboardScreen extends ConsumerWidget {
                       AppCard(
                         child: Column(
                           children: [
-                            _buildLeaderboardRow("1", "Sophia Chen", "5,620 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia", isGold: true),
+                            _buildLeaderboardRow("1", "Sophia Chen", "5,620 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia", isGold: true, isDark: isDark),
                             const Divider(height: 18),
-                            _buildLeaderboardRow("2", user?.name ?? "Alex Mercer", "4,850 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex", isYou: true),
+                            _buildLeaderboardRow("2", user?.name ?? "Alex Mercer", "4,850 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex", isYou: true, isDark: isDark),
                             const Divider(height: 18),
-                            _buildLeaderboardRow("3", "Marcus Vance", "4,310 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus"),
+                            _buildLeaderboardRow("3", "Marcus Vance", "4,310 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus", isDark: isDark),
                             const Divider(height: 18),
-                            _buildLeaderboardRow("4", "Elena Rostova", "3,980 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena"),
+                            _buildLeaderboardRow("4", "Elena Rostova", "3,980 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena", isDark: isDark),
                           ],
                         ),
                       ),
@@ -328,8 +336,8 @@ class StudentDashboardScreen extends ConsumerWidget {
 
                       // Battle Room Call to Action
                       AppCard(
-                        backgroundColor: const Color(0xFF1E1B4B), // Deep indigo
-                        borderColor: AppColors.secondary.withOpacity(0.5),
+                        backgroundColor: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFF3E8FF), // Indigo / Soft Purple
+                        borderColor: AppColors.secondary.withOpacity(isDark ? 0.5 : 0.3),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -339,14 +347,14 @@ class StudentDashboardScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   "1v1 Live Battle",
-                                  style: AppTypography.h4(context, color: AppColors.textPrimary),
+                                  style: AppTypography.h4(context, color: primaryTextColor),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            const Text(
+                            Text(
                               "Challenge friends or join an active match to win XP & trophy badges.",
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                              style: TextStyle(color: secondaryTextColor, fontSize: 13),
                             ),
                             const SizedBox(height: AppSpacing.space4),
                             AppButton(
@@ -370,7 +378,7 @@ class StudentDashboardScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       body: Row(
         children: [
           if (!isMob)
@@ -397,6 +405,7 @@ class StudentDashboardScreen extends ConsumerWidget {
 
   Widget _buildPracticeRow(
     BuildContext context, {
+    required bool isDark,
     required String title,
     required String topic,
     required String duration,
@@ -405,6 +414,9 @@ class StudentDashboardScreen extends ConsumerWidget {
     bool isComingSoon = false,
     required VoidCallback onTap,
   }) {
+    final primaryTextColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+    final mutedTextColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
+
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadii.inputRadius,
@@ -434,12 +446,12 @@ class StudentDashboardScreen extends ConsumerWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: primaryTextColor),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     topic,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: TextStyle(color: mutedTextColor, fontSize: 12),
                   ),
                 ],
               ),
@@ -449,7 +461,7 @@ class StudentDashboardScreen extends ConsumerWidget {
             else ...[
               AppBadge.difficulty(difficulty),
               const SizedBox(width: 8),
-              Text(duration, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              Text(duration, style: TextStyle(color: mutedTextColor, fontSize: 12)),
             ]
           ],
         ),
@@ -457,7 +469,19 @@ class StudentDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLeaderboardRow(String rank, String name, String points, String avatar, {bool isGold = false, bool isYou = false}) {
+  Widget _buildLeaderboardRow(
+    String rank,
+    String name,
+    String points,
+    String avatar, {
+    bool isGold = false,
+    bool isYou = false,
+    required bool isDark,
+  }) {
+    final primaryTextColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+    final secondaryTextColor = isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+    final mutedTextColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
+
     return Row(
       children: [
         Container(
@@ -468,7 +492,9 @@ class StudentDashboardScreen extends ConsumerWidget {
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 14,
-              color: isGold ? const Color(0xFFFBBF24) : (isYou ? AppColors.primary : AppColors.textMuted),
+              color: isGold
+                  ? const Color(0xFFFBBF24)
+                  : (isYou ? (isDark ? AppColors.primaryLight : AppColors.primaryDark) : mutedTextColor),
             ),
           ),
         ),
@@ -481,13 +507,13 @@ class StudentDashboardScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: isYou ? FontWeight.w700 : FontWeight.w500,
-              color: isYou ? AppColors.primaryLight : AppColors.textPrimary,
+              color: isYou ? (isDark ? AppColors.primaryLight : AppColors.primaryDark) : primaryTextColor,
             ),
           ),
         ),
         Text(
           points,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: secondaryTextColor),
         ),
       ],
     );

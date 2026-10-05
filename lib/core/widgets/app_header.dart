@@ -32,14 +32,20 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.surface : AppColors.lightSurface;
+    final borderColor = isDark ? AppColors.divider : AppColors.lightBorder;
+    final titleColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+    final subtitleColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.space5,
         vertical: AppSpacing.space4,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.divider, width: 1)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border(bottom: BorderSide(color: borderColor, width: 1)),
       ),
       child: Row(
         children: [
@@ -51,7 +57,7 @@ class AppHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: AppTypography.h3(context, color: AppColors.textPrimary),
+                  style: AppTypography.h3(context, color: titleColor),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -59,9 +65,9 @@ class AppHeader extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMuted,
+                      color: subtitleColor,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -117,3 +123,4 @@ class AppHeader extends StatelessWidget {
     );
   }
 }
+

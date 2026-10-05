@@ -10,6 +10,11 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.surface : AppColors.lightSurface;
+    final borderColor = isDark ? AppColors.border : AppColors.lightBorder;
+    final unselectedColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
+
     int getIndex() {
       if (currentRoute.startsWith("/student/dashboard")) return 0;
       if (currentRoute.startsWith("/student/learning")) return 1;
@@ -20,9 +25,9 @@ class AppBottomNav extends StatelessWidget {
     }
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border(top: BorderSide(color: borderColor, width: 1)),
       ),
       child: BottomNavigationBar(
         currentIndex: getIndex(),
@@ -45,9 +50,9 @@ class AppBottomNav extends StatelessWidget {
               break;
           }
         },
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textMuted,
+        backgroundColor: bgColor,
+        selectedItemColor: isDark ? AppColors.primary : AppColors.primaryDark,
+        unselectedItemColor: unselectedColor,
         type: BottomNavigationBarType.fixed,
         selectedFontSize: 11,
         unselectedFontSize: 11,
@@ -62,3 +67,4 @@ class AppBottomNav extends StatelessWidget {
     );
   }
 }
+

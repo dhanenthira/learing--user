@@ -27,6 +27,7 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor;
     Color textColor;
     BorderSide borderSide = BorderSide.none;
@@ -37,9 +38,9 @@ class AppButton extends StatelessWidget {
         textColor = AppColors.textOnPrimary;
         break;
       case AppButtonVariant.secondary:
-        bgColor = AppColors.surfaceElevated;
-        textColor = AppColors.textPrimary;
-        borderSide = const BorderSide(color: AppColors.border, width: 1);
+        bgColor = isDark ? AppColors.surfaceElevated : AppColors.lightSurfaceElevated;
+        textColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+        borderSide = BorderSide(color: isDark ? AppColors.border : AppColors.lightBorder, width: 1);
         break;
       case AppButtonVariant.destructive:
         bgColor = AppColors.error;
@@ -47,12 +48,12 @@ class AppButton extends StatelessWidget {
         break;
       case AppButtonVariant.outline:
         bgColor = Colors.transparent;
-        textColor = AppColors.primary;
-        borderSide = const BorderSide(color: AppColors.primary, width: 1.5);
+        textColor = isDark ? AppColors.primary : AppColors.primaryDark;
+        borderSide = BorderSide(color: isDark ? AppColors.primary : AppColors.primaryDark, width: 1.5);
         break;
       case AppButtonVariant.text:
         bgColor = Colors.transparent;
-        textColor = AppColors.primary;
+        textColor = isDark ? AppColors.primary : AppColors.primaryDark;
         break;
     }
 
@@ -86,7 +87,9 @@ class AppButton extends StatelessWidget {
       width: width,
       height: height,
       child: Material(
-        color: onPressed == null ? AppColors.surfaceHover.withOpacity(0.5) : bgColor,
+        color: onPressed == null
+            ? (isDark ? AppColors.surfaceHover.withOpacity(0.5) : Colors.black.withOpacity(0.05))
+            : bgColor,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadii.buttonRadius,
           side: borderSide,
@@ -124,13 +127,18 @@ class AppIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveBg = backgroundColor ?? (isDark ? AppColors.surfaceElevated : AppColors.lightSurfaceElevated);
+    final effectiveBorder = isDark ? AppColors.border : AppColors.lightBorder;
+    final effectiveColor = color ?? (isDark ? AppColors.textPrimary : AppColors.lightTextPrimary);
+
     Widget button = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surfaceElevated,
+        color: effectiveBg,
         borderRadius: AppRadii.inputRadius,
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: effectiveBorder, width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -141,7 +149,7 @@ class AppIconButton extends StatelessWidget {
             child: Icon(
               icon,
               size: size * 0.5,
-              color: color ?? AppColors.textPrimary,
+              color: effectiveColor,
             ),
           ),
         ),
@@ -154,3 +162,4 @@ class AppIconButton extends StatelessWidget {
     return button;
   }
 }
+

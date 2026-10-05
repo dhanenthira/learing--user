@@ -170,7 +170,7 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(isAdmin: true, currentRoute: "/admin/students"),

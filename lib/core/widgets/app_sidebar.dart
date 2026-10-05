@@ -62,21 +62,28 @@ class AppSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = isAdmin ? adminItems : studentItems;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.surface : AppColors.lightSurface;
+    final borderColor = isDark ? AppColors.border : AppColors.lightBorder;
+    final dividerColor = isDark ? AppColors.divider : AppColors.lightBorder;
+    final primaryTextColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+    final secondaryTextColor = isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+    final mutedTextColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
 
     return Container(
       width: 250,
       height: double.infinity,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(right: BorderSide(color: AppColors.border, width: 1)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border(right: BorderSide(color: borderColor, width: 1)),
       ),
       child: Column(
         children: [
           // Logo & Branding
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space5, vertical: AppSpacing.space5),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.divider, width: 1)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: dividerColor, width: 1)),
             ),
             child: Row(
               children: [
@@ -101,18 +108,18 @@ class AppSidebar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           children: [
                             TextSpan(
                               text: "CODE",
                               style: TextStyle(
-                                color: AppColors.textPrimary,
+                                color: primaryTextColor,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 16,
                                 letterSpacing: 0.5,
                               ),
                             ),
-                            TextSpan(
+                            const TextSpan(
                               text: "ARENA",
                               style: TextStyle(
                                 color: AppColors.primary,
@@ -126,8 +133,8 @@ class AppSidebar extends StatelessWidget {
                       ),
                       Text(
                         isAdmin ? "Admin Console" : "Learn • Practice • Compete",
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
+                        style: TextStyle(
+                          color: mutedTextColor,
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),
@@ -165,7 +172,7 @@ class AppSidebar extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isActive ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
+                        color: isActive ? AppColors.primary.withOpacity(isDark ? 0.12 : 0.1) : Colors.transparent,
                         borderRadius: AppRadii.inputRadius,
                         border: Border.all(
                           color: isActive ? AppColors.primary.withOpacity(0.4) : Colors.transparent,
@@ -177,7 +184,7 @@ class AppSidebar extends StatelessWidget {
                           Icon(
                             item.icon,
                             size: 18,
-                            color: isActive ? AppColors.primary : AppColors.textMuted,
+                            color: isActive ? AppColors.primary : mutedTextColor,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -186,7 +193,9 @@ class AppSidebar extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                                color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+                                color: isActive
+                                    ? (isDark ? AppColors.textPrimary : AppColors.primaryDark)
+                                    : secondaryTextColor,
                               ),
                             ),
                           ),
@@ -218,14 +227,16 @@ class AppSidebar extends StatelessWidget {
           // Footer Role Switch & Logout
           Container(
             padding: const EdgeInsets.all(AppSpacing.space4),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: AppColors.divider, width: 1)),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: dividerColor, width: 1)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Material(
-                  color: isAdmin ? AppColors.primary.withOpacity(0.12) : AppColors.error.withOpacity(0.12),
+                  color: isAdmin
+                      ? AppColors.primary.withOpacity(isDark ? 0.12 : 0.08)
+                      : AppColors.error.withOpacity(isDark ? 0.12 : 0.08),
                   borderRadius: AppRadii.inputRadius,
                   child: InkWell(
                     onTap: () {
@@ -243,7 +254,7 @@ class AppSidebar extends StatelessWidget {
                           Icon(
                             isAdmin ? LucideIcons.userRound : LucideIcons.shieldAlert,
                             size: 18,
-                            color: isAdmin ? AppColors.primaryLight : AppColors.error,
+                            color: isAdmin ? (isDark ? AppColors.primaryLight : AppColors.primaryDark) : AppColors.error,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -252,7 +263,9 @@ class AppSidebar extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: isAdmin ? AppColors.primaryLight : AppColors.error,
+                                color: isAdmin
+                                    ? (isDark ? AppColors.primaryLight : AppColors.primaryDark)
+                                    : AppColors.error,
                               ),
                             ),
                           ),
@@ -273,11 +286,11 @@ class AppSidebar extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.logOut, size: 16, color: AppColors.textMuted),
+                          Icon(LucideIcons.logOut, size: 16, color: mutedTextColor),
                           const SizedBox(width: 10),
                           Text(
                             "Sign Out",
-                            style: AppTypography.button(context, color: AppColors.textMuted),
+                            style: AppTypography.button(context, color: mutedTextColor),
                           ),
                         ],
                       ),
@@ -292,3 +305,5 @@ class AppSidebar extends StatelessWidget {
     );
   }
 }
+
+

@@ -253,7 +253,7 @@ class _AdminQuestionsScreenState extends ConsumerState<AdminQuestionsScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(isAdmin: true, currentRoute: "/admin/questions"),

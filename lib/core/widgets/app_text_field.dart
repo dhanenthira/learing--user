@@ -41,6 +41,10 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+    final mutedTextColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -48,10 +52,10 @@ class _AppTextFieldState extends State<AppTextField> {
         if (widget.label != null) ...[
           Text(
             widget.label!,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+              color: primaryTextColor,
             ),
           ),
           const SizedBox(height: AppSpacing.space2),
@@ -64,21 +68,21 @@ class _AppTextFieldState extends State<AppTextField> {
           readOnly: widget.readOnly,
           onChanged: widget.onChanged,
           onTap: widget.onTap,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: primaryTextColor,
             fontSize: 14,
           ),
           decoration: InputDecoration(
             hintText: widget.hint,
             errorText: widget.errorText,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, color: AppColors.textMuted, size: 20)
+                ? Icon(widget.prefixIcon, color: mutedTextColor, size: 20)
                 : null,
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.textMuted,
+                      color: mutedTextColor,
                       size: 20,
                     ),
                     onPressed: () => setState(() => _obscureText = !_obscureText),

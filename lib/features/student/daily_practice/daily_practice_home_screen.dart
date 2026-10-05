@@ -237,7 +237,7 @@ class _DailyPracticeHomeScreenState extends ConsumerState<DailyPracticeHomeScree
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/practice"),
