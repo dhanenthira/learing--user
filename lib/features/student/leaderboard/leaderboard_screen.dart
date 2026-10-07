@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/constants/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radii.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_sidebar.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/services/theme_service.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/network/api_client.dart';
 
 class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
@@ -24,65 +22,48 @@ class LeaderboardScreen extends ConsumerStatefulWidget {
 class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   String _period = "All Time";
   String _category = "All";
+  List<Map<String, dynamic>> _rankings = [];
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _rankings = [
-    {
-      "rank": 1,
-      "name": "Sophia Chen",
-      "studentId": "CA-2026-8190",
-      "solved": 450,
-      "accuracy": "91.0%",
-      "points": 5620,
-      "battleWins": 27,
-      "streak": 21,
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia"
-    },
-    {
-      "rank": 2,
-      "name": "Alex Mercer (You)",
-      "studentId": "CA-2026-9042",
-      "solved": 380,
-      "accuracy": "88.2%",
-      "points": 4850,
-      "battleWins": 19,
-      "streak": 14,
-      "isYou": true,
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
-    },
-    {
-      "rank": 3,
-      "name": "Marcus Vance",
-      "studentId": "CA-2026-7241",
-      "solved": 310,
-      "accuracy": "85.4%",
-      "points": 4310,
-      "battleWins": 15,
-      "streak": 10,
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus"
-    },
-    {
-      "rank": 4,
-      "name": "Elena Rostova",
-      "studentId": "CA-2026-5120",
-      "solved": 280,
-      "accuracy": "84.0%",
-      "points": 3980,
-      "battleWins": 12,
-      "streak": 7,
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena"
-    },
-    {
-      "rank": 5,
-      "name": "David Kim",
-      "studentId": "CA-2026-3829",
-      "solved": 240,
-      "accuracy": "81.5%",
-      "points": 3520,
-      "battleWins": 9,
-      "streak": 5,
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=David"
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchLeaderboard();
+  }
+
+  Future<void> _fetchLeaderboard() async {
+    try {
+      final res = await ApiClient().dio.get("/leaderboard");
+      if (res.data is List && mounted) {
+        final list = (res.data as List).map((e) {
+          final m = Map<String, dynamic>.from(e);
+          return {
+            "rank": m["rank"] ?? 1,
+            "name": m["name"] ?? "Student",
+            "studentId": m["student_id"] ?? "CA-2026",
+            "solved": m["questions_solved"] ?? 0,
+            "accuracy": "${(m["accuracy"] ?? 0.0).toStringAsFixed(1)}%",
+            "points": m["coding_points"] ?? 0,
+            "battleWins": m["battle_wins"] ?? 0,
+            "streak": m["streak_days"] ?? 0,
+            "avatar": m["avatar_url"] ?? "",
+            "userId": m["user_id"] ?? "",
+          };
+        }).toList();
+
+        setState(() {
+          _rankings = list;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,8 +99,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           ),
           const SizedBox(height: AppSpacing.space5),
 
-          // Top 3 Podium
-          if (!isMob)
+          // Top Podium (if at least 3 exist)
+          if (!isMob && _rankings.length >= 3)
             Row(
               children: [
                 _buildPodiumCard(_rankings[1], 2, const Color(0xFF94A3B8)),
@@ -128,71 +109,104 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 const SizedBox(width: 16),
                 _buildPodiumCard(_rankings[2], 3, const Color(0xFFB45309)),
               ],
+            )
+          else if (!isMob && _rankings.isNotEmpty)
+            Row(
+              children: [
+                for (int i = 0; i < _rankings.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 16),
+                  _buildPodiumCard(
+                    _rankings[i],
+                    i + 1,
+                    i == 0 ? const Color(0xFFFBBF24) : const Color(0xFF94A3B8),
+                  ),
+                ],
+              ],
             ),
           const SizedBox(height: AppSpacing.space6),
 
           // Leaderboard Table
           AppCard(
             padding: EdgeInsets.zero,
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _rankings.length,
-              separatorBuilder: (ctx, i) => const Divider(height: 1),
-              itemBuilder: (ctx, idx) {
-                final r = _rankings[idx];
-                final isYou = r["isYou"] == true;
-
-                return Container(
-                  color: isYou ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 32,
-                        child: Text(
-                          "#${r["rank"]}",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 15,
-                            color: r["rank"] == 1 ? const Color(0xFFFBBF24) : (r["rank"] == 2 ? const Color(0xFF94A3B8) : (r["rank"] == 3 ? const Color(0xFFB45309) : AppColors.textMuted)),
+            child: _isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : (_rankings.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(
+                          child: Text(
+                            "No rankings recorded yet in database. Start practicing to climb the leaderboard!",
+                            style: TextStyle(color: AppColors.textMuted, fontSize: 14),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      AppAvatar(name: r["name"] ?? "User", radius: 18),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              r["name"],
-                              style: TextStyle(
-                                fontWeight: isYou ? FontWeight.w700 : FontWeight.w600,
-                                fontSize: 14,
-                                color: isYou ? AppColors.primaryLight : AppColors.textPrimary,
-                              ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _rankings.length,
+                        separatorBuilder: (ctx, i) => const Divider(height: 1),
+                        itemBuilder: (ctx, idx) {
+                          final r = _rankings[idx];
+                          final currentUser = ref.watch(authProvider).user;
+                          final isYou = r["userId"] == currentUser?.id || r["studentId"] == currentUser?.studentId;
+
+                          return Container(
+                            color: isYou ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 32,
+                                  child: Text(
+                                    "#${r["rank"]}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                      color: r["rank"] == 1 ? const Color(0xFFFBBF24) : (r["rank"] == 2 ? const Color(0xFF94A3B8) : (r["rank"] == 3 ? const Color(0xFFB45309) : AppColors.textMuted)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                AppAvatar(
+                                  name: r["name"] ?? "User",
+                                  imageUrl: (r["avatar"] as String?)?.isNotEmpty == true ? r["avatar"] : null,
+                                  radius: 18,
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        r["name"] + (isYou ? " (You)" : ""),
+                                        style: TextStyle(
+                                          fontWeight: isYou ? FontWeight.w700 : FontWeight.w600,
+                                          fontSize: 14,
+                                          color: isYou ? AppColors.primaryLight : AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      Text(r["studentId"], style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                    ],
+                                  ),
+                                ),
+                                if (!isMob) ...[
+                                  Text("Accuracy: ${r["accuracy"]}", style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                                  const SizedBox(width: 24),
+                                  Text("Solved: ${r["solved"]}", style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                                  const SizedBox(width: 24),
+                                ],
+                                Text(
+                                  "${r["points"]} XP",
+                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.primaryLight),
+                                ),
+                              ],
                             ),
-                            Text(r["studentId"], style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                      if (!isMob) ...[
-                        Text("Accuracy: ${r["accuracy"]}", style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                        const SizedBox(width: 24),
-                        Text("Solved: ${r["solved"]}", style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                        const SizedBox(width: 24),
-                      ],
-                      Text(
-                        "${r["points"]} XP",
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.primaryLight),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                          );
+                        },
+                      )),
           ),
         ],
       ),
@@ -238,7 +252,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            AppAvatar(name: r["name"] ?? "User", radius: 28),
+            AppAvatar(
+              name: r["name"] ?? "User",
+              imageUrl: (r["avatar"] as String?)?.isNotEmpty == true ? r["avatar"] : null,
+              radius: 28,
+            ),
             const SizedBox(height: 8),
             Text(r["name"], style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
             Text(r["studentId"], style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),

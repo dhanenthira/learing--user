@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../network/api_client.dart';
 
 class UserModel {
@@ -9,12 +10,16 @@ class UserModel {
   final String role; // 'student' or 'admin'
   final String? collegeName;
   final String? department;
+  final int? graduationYear;
+  final String? bio;
   final int streakDays;
   final int totalPoints;
   final int questionsSolved;
   final double overallAccuracy;
   final int codingProblemsSolved;
   final int battlesWon;
+  final int followersCount;
+  final int followingCount;
   final String? avatarUrl;
 
   UserModel({
@@ -25,31 +30,39 @@ class UserModel {
     required this.role,
     this.collegeName,
     this.department,
-    this.streakDays = 14,
-    this.totalPoints = 4850,
-    this.questionsSolved = 380,
-    this.overallAccuracy = 88.2,
-    this.codingProblemsSolved = 56,
-    this.battlesWon = 19,
+    this.graduationYear,
+    this.bio,
+    this.streakDays = 0,
+    this.totalPoints = 0,
+    this.questionsSolved = 0,
+    this.overallAccuracy = 0.0,
+    this.codingProblemsSolved = 0,
+    this.battlesWon = 0,
+    this.followersCount = 0,
+    this.followingCount = 0,
     this.avatarUrl,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] ?? 'user_01',
-      studentId: json['student_id'] ?? 'CA-2026-9042',
-      name: json['name'] ?? 'Alex Mercer',
-      email: json['email'] ?? 'student@codearena.com',
+      id: json['id'] ?? '',
+      studentId: json['student_id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
       role: json['role'] ?? 'student',
-      collegeName: json['college_name'] ?? 'National Institute of Tech',
-      department: json['department'] ?? 'Computer Science',
-      streakDays: json['streak_days'] ?? 14,
-      totalPoints: json['total_points'] ?? 4850,
-      questionsSolved: json['questions_solved'] ?? 380,
-      overallAccuracy: (json['overall_accuracy'] ?? 88.2).toDouble(),
-      codingProblemsSolved: json['coding_problems_solved'] ?? 56,
-      battlesWon: json['battles_won'] ?? 19,
-      avatarUrl: json['avatar_url'] ?? 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
+      collegeName: json['college_name'],
+      department: json['department'],
+      graduationYear: json['graduation_year'],
+      bio: json['bio'],
+      streakDays: json['streak_days'] ?? 0,
+      totalPoints: json['total_points'] ?? 0,
+      questionsSolved: json['questions_solved'] ?? 0,
+      overallAccuracy: (json['overall_accuracy'] ?? 0.0).toDouble(),
+      codingProblemsSolved: json['coding_problems_solved'] ?? 0,
+      battlesWon: json['battles_won'] ?? 0,
+      followersCount: json['followers_count'] ?? 0,
+      followingCount: json['following_count'] ?? 0,
+      avatarUrl: json['avatar_url'],
     );
   }
 
@@ -63,7 +76,7 @@ class AuthState {
   final String? error;
 
   AuthState({
-    this.isAuthenticated = true, // default demo logged in
+    this.isAuthenticated = false,
     this.user,
     this.isLoading = false,
     this.error,
@@ -87,62 +100,29 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier()
       : super(AuthState(
-          isAuthenticated: true,
-          user: UserModel(
-            id: "user_student_01",
-            studentId: "CA-2026-9042",
-            name: "Alex Mercer",
-            email: "student@codearena.com",
-            role: "student",
-            collegeName: "National Institute of Tech",
-            department: "Computer Science",
-            streakDays: 14,
-            totalPoints: 4850,
-            questionsSolved: 380,
-            overallAccuracy: 88.2,
-            codingProblemsSolved: 56,
-            battlesWon: 19,
-            avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-          ),
+          isAuthenticated: false,
+          user: null,
         ));
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final res = await ApiClient().dio.post("/auth/login", data: {
-        "email": email,
-        "password": password,
+        "email": email.trim(),
+        "password": password.trim(),
       });
       final data = res.data;
       final user = UserModel.fromJson(data["user"]);
       ApiClient().setToken(data["access_token"]);
-      state = state.copyWith(isAuthenticated: true, user: user, isLoading: false);
+      state = state.copyWith(isAuthenticated: true, user: user, isLoading: false, error: null);
       return true;
     } catch (e) {
-      // Fallback local login simulation if backend offline
-      if (email.contains("admin")) {
-        final admin = UserModel(
-          id: "user_admin_01",
-          studentId: "ADM-001",
-          name: "System Administrator",
-          email: email,
-          role: "admin",
-          collegeName: "CodeArena HQ",
-          department: "Platform Core",
-        );
-        state = state.copyWith(isAuthenticated: true, user: admin, isLoading: false);
-        return true;
-      } else {
-        final student = UserModel(
-          id: "user_student_01",
-          studentId: "CA-2026-9042",
-          name: "Alex Mercer",
-          email: email,
-          role: "student",
-        );
-        state = state.copyWith(isAuthenticated: true, user: student, isLoading: false);
-        return true;
+      String msg = "Invalid email or password.";
+      if (e is DioException && e.response?.data != null) {
+        msg = e.response?.data["detail"] ?? msg;
       }
+      state = state.copyWith(isAuthenticated: false, user: null, isLoading: false, error: msg);
+      return false;
     }
   }
 
@@ -150,26 +130,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final res = await ApiClient().dio.post("/auth/admin/login", data: {
-        "email": email,
-        "password": password,
+        "email": email.trim(),
+        "password": password.trim(),
       });
       final data = res.data;
       final user = UserModel.fromJson(data["user"]);
       ApiClient().setToken(data["access_token"]);
-      state = state.copyWith(isAuthenticated: true, user: user, isLoading: false);
+      state = state.copyWith(isAuthenticated: true, user: user, isLoading: false, error: null);
       return true;
     } catch (e) {
-      final admin = UserModel(
-        id: "user_admin_01",
-        studentId: "ADM-001",
-        name: "System Administrator",
-        email: email,
-        role: "admin",
-        collegeName: "CodeArena HQ",
-        department: "Platform Core",
-      );
-      state = state.copyWith(isAuthenticated: true, user: admin, isLoading: false);
-      return true;
+      String msg = "Invalid administrator credentials or unauthorized.";
+      if (e is DioException && e.response?.data != null) {
+        msg = e.response?.data["detail"] ?? msg;
+      }
+      state = state.copyWith(isAuthenticated: false, user: null, isLoading: false, error: msg);
+      return false;
     }
   }
 
@@ -177,30 +152,67 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final res = await ApiClient().dio.post("/auth/register", data: {
-        "name": name,
-        "email": email,
-        "password": password,
-        "college_name": college,
-        "department": department,
+        "name": name.trim(),
+        "email": email.trim(),
+        "password": password.trim(),
+        "college_name": college?.trim(),
+        "department": department?.trim(),
       });
       final data = res.data;
       final user = UserModel.fromJson(data["user"]);
       ApiClient().setToken(data["access_token"]);
-      state = state.copyWith(isAuthenticated: true, user: user, isLoading: false);
+      state = state.copyWith(isAuthenticated: true, user: user, isLoading: false, error: null);
       return true;
     } catch (e) {
-      final student = UserModel(
-        id: "user_${DateTime.now().millisecondsSinceEpoch}",
-        studentId: "CA-2026-9999",
-        name: name,
-        email: email,
-        role: "student",
-        collegeName: college,
-        department: department,
-      );
-      state = state.copyWith(isAuthenticated: true, user: student, isLoading: false);
-      return true;
+      String errorMsg = "Registration failed. Email may already be in use.";
+      if (e is DioException && e.response?.data != null) {
+        errorMsg = e.response?.data["detail"] ?? errorMsg;
+      }
+      state = state.copyWith(isAuthenticated: false, user: null, isLoading: false, error: errorMsg);
+      return false;
     }
+  }
+
+  Future<bool> updateProfile({
+    String? name,
+    String? collegeName,
+    String? department,
+    int? graduationYear,
+    String? bio,
+    String? avatarUrl,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final Map<String, dynamic> data = {};
+      if (name != null) data["name"] = name.trim();
+      if (collegeName != null) data["college_name"] = collegeName.trim();
+      if (department != null) data["department"] = department.trim();
+      if (graduationYear != null) data["graduation_year"] = graduationYear;
+      if (bio != null) data["bio"] = bio.trim();
+      if (avatarUrl != null) data["avatar_url"] = avatarUrl.trim();
+
+      final res = await ApiClient().dio.put("/students/profile", data: data);
+      final updatedUser = UserModel.fromJson(res.data);
+      state = state.copyWith(user: updatedUser, isLoading: false, error: null);
+      return true;
+    } catch (e) {
+      String msg = "Failed to update profile";
+      if (e is DioException && e.response?.data != null) {
+        msg = e.response?.data["detail"] ?? msg;
+      }
+      state = state.copyWith(isLoading: false, error: msg);
+      return false;
+    }
+  }
+
+  Future<void> refreshUser() async {
+    try {
+      final res = await ApiClient().dio.get("/auth/me");
+      if (res.data != null) {
+        final updatedUser = UserModel.fromJson(res.data);
+        state = state.copyWith(user: updatedUser);
+      }
+    } catch (_) {}
   }
 
   void logout() {

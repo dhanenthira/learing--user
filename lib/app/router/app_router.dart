@@ -23,7 +23,7 @@ import '../../features/admin/students/admin_students_screen.dart';
 import '../../features/admin/question_management/admin_questions_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/student/dashboard',
+  initialLocation: '/auth/login',
   routes: [
     // Auth Routes
     GoRoute(

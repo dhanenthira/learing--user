@@ -19,8 +19,8 @@ class AdminLoginScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
-  final _emailCtrl = TextEditingController(text: "admin@codearena.com");
-  final _passCtrl = TextEditingController(text: "adminpassword123");
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
   String? _error;
 
   void _handleAdminLogin() async {
@@ -36,7 +36,8 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     if (success && mounted) {
       context.go("/admin/dashboard");
     } else if (mounted) {
-      setState(() => _error = "Unauthorized. Admin privileges required.");
+      final authError = ref.read(authProvider).error;
+      setState(() => _error = authError ?? "Unauthorized. Admin privileges required.");
     }
   }
 

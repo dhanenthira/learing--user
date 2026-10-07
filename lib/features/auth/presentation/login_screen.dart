@@ -18,8 +18,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailCtrl = TextEditingController(text: "student@codearena.com");
-  final _passCtrl = TextEditingController(text: "password123");
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
   bool _rememberMe = true;
   String? _error;
 
@@ -36,7 +36,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (success && mounted) {
       context.go("/student/dashboard");
     } else if (mounted) {
-      setState(() => _error = "Invalid email or password.");
+      final authError = ref.read(authProvider).error;
+      setState(() => _error = authError ?? "Invalid email or password.");
     }
   }
 

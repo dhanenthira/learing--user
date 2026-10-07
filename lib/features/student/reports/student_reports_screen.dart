@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/constants/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radii.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_sidebar.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/services/theme_service.dart';
 
@@ -39,14 +37,22 @@ class StudentReportsScreen extends ConsumerWidget {
           // Overview Stats
           LayoutBuilder(
             builder: (ctx, constraints) {
-              int crossAxisCount = constraints.maxWidth < 600 ? 1 : 3;
+              int crossAxisCount = constraints.maxWidth < 600 ? 1 : (constraints.maxWidth < 950 ? 2 : 3);
+              double aspectRatio;
+              if (crossAxisCount == 1) {
+                aspectRatio = constraints.maxWidth < 400 ? 2.2 : 2.5;
+              } else if (crossAxisCount == 2) {
+                aspectRatio = 1.5;
+              } else {
+                aspectRatio = 1.4;
+              }
               return GridView.count(
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: crossAxisCount == 1 ? 2.5 : 1.8,
+                childAspectRatio: aspectRatio,
                 children: const [
                   StatCard(
                     label: "Overall Solved",

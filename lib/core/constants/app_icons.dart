@@ -58,6 +58,12 @@ class AppIcons {
   static const IconData activity = Icons.show_chart_rounded;
   static const IconData moon = Icons.dark_mode_outlined;
   static const IconData sun = Icons.light_mode_outlined;
+  static const IconData bookmark = Icons.bookmark_border_rounded;
+  static const IconData bookmarkCheck = Icons.bookmark_added_rounded;
+  static const IconData arrowRight = Icons.arrow_forward_rounded;
+  static const IconData frown = Icons.sentiment_dissatisfied_rounded;
+  static const IconData userX = Icons.person_off_rounded;
+  static const IconData userCheck = Icons.how_to_reg_rounded;
 }
 
 // Global alias for compatibility

@@ -111,7 +111,7 @@ class StatCard extends StatelessWidget {
     final progressTrackColor = isDark ? AppColors.border : AppColors.lightBorder;
 
     return AppCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,13 +121,13 @@ class StatCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.12),
                   borderRadius: AppRadii.inputRadius,
                 ),
-                child: Icon(icon, color: iconColor, size: 22),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
               if (subtitle != null)
                 Flexible(
@@ -144,7 +144,7 @@ class StatCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.space3),
+          const SizedBox(height: 8),
           Text(
             label,
             style: TextStyle(
@@ -152,19 +152,25 @@ class StatCard extends StatelessWidget {
               color: mutedTextColor,
               fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: AppSpacing.space1),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: primaryTextColor,
-              letterSpacing: -0.5,
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: primaryTextColor,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           if (progress != null) ...[
-            const SizedBox(height: AppSpacing.space2),
+            const SizedBox(height: 6),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(

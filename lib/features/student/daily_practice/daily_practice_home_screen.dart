@@ -15,6 +15,7 @@ import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/widgets/coming_soon_modal.dart';
 import '../../../core/services/theme_service.dart';
+import '../../../core/services/auth_service.dart';
 
 class DailyPracticeHomeScreen extends ConsumerStatefulWidget {
   const DailyPracticeHomeScreen({super.key});
@@ -95,7 +96,7 @@ class _DailyPracticeHomeScreenState extends ConsumerState<DailyPracticeHomeScree
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppBadge.streak(14),
+                      AppBadge.streak(ref.watch(authProvider).user?.streakDays ?? 0),
                       const SizedBox(height: AppSpacing.space3),
                       Text(
                         "Daily Practice Challenges",

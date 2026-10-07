@@ -22,8 +22,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
-  final _collegeCtrl = TextEditingController(text: "National Institute of Technology");
-  final _deptCtrl = TextEditingController(text: "Computer Science & Engineering");
+  final _collegeCtrl = TextEditingController();
+  final _deptCtrl = TextEditingController();
   bool _agreeTerms = true;
   String? _error;
 
@@ -46,12 +46,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           _nameCtrl.text.trim(),
           _emailCtrl.text.trim(),
           _passCtrl.text.trim(),
-          _collegeCtrl.text.trim(),
-          _deptCtrl.text.trim(),
+          _collegeCtrl.text.trim().isEmpty ? null : _collegeCtrl.text.trim(),
+          _deptCtrl.text.trim().isEmpty ? null : _deptCtrl.text.trim(),
         );
 
     if (success && mounted) {
       context.go("/student/dashboard");
+    } else if (mounted) {
+      final authError = ref.read(authProvider).error;
+      setState(() => _error = authError ?? "Registration failed. Please check details.");
     }
   }
 

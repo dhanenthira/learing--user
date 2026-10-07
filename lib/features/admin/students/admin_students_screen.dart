@@ -13,6 +13,7 @@ import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/services/theme_service.dart';
+import '../../../core/network/api_client.dart';
 
 class AdminStudentsScreen extends ConsumerStatefulWidget {
   const AdminStudentsScreen({super.key});
@@ -23,45 +24,48 @@ class AdminStudentsScreen extends ConsumerStatefulWidget {
 
 class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
   String _search = "";
+  List<Map<String, dynamic>> _students = [];
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _students = [
-    {
-      "id": "u1",
-      "studentId": "CA-2026-9042",
-      "name": "Alex Mercer",
-      "email": "student@codearena.com",
-      "college": "National Institute of Tech",
-      "solved": 380,
-      "accuracy": "88.2%",
-      "points": 4850,
-      "status": "Active",
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
-    },
-    {
-      "id": "u2",
-      "studentId": "CA-2026-8190",
-      "name": "Sophia Chen",
-      "email": "sophia@codearena.com",
-      "college": "Tech University",
-      "solved": 450,
-      "accuracy": "91.0%",
-      "points": 5620,
-      "status": "Active",
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia"
-    },
-    {
-      "id": "u3",
-      "studentId": "CA-2026-7241",
-      "name": "Marcus Vance",
-      "email": "marcus@codearena.com",
-      "college": "State Engineering College",
-      "solved": 310,
-      "accuracy": "85.4%",
-      "points": 4310,
-      "status": "Active",
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus"
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchStudents();
+  }
+
+  Future<void> _fetchStudents() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiClient().dio.get("/admin/students");
+      if (res.data != null && res.data is List) {
+        setState(() {
+          _students = List<Map<String, dynamic>>.from((res.data as List).map((s) => {
+            "id": s["id"] ?? "",
+            "studentId": s["student_id"] ?? "",
+            "name": s["name"] ?? "",
+            "email": s["email"] ?? "",
+            "college": s["college_name"] ?? "—",
+            "solved": s["questions_solved"] ?? 0,
+            "accuracy": "${(s["overall_accuracy"] ?? 0.0).toStringAsFixed(1)}%",
+            "points": s["total_points"] ?? 0,
+            "status": (s["is_active"] ?? true) ? "Active" : "Suspended",
+            "avatar": s["avatar_url"] ?? "https://api.dicebear.com/7.x/avataaars/svg?seed=${s["name"]}",
+          }));
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _students = [];
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _students = [];
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +75,8 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
     final filtered = _students.where((s) {
       if (_search.isNotEmpty &&
           !s["name"].toString().toLowerCase().contains(_search.toLowerCase()) &&
-          !s["studentId"].toString().toLowerCase().contains(_search.toLowerCase())) {
+          !s["studentId"].toString().toLowerCase().contains(_search.toLowerCase()) &&
+          !s["email"].toString().toLowerCase().contains(_search.toLowerCase())) {
         return false;
       }
       return true;
@@ -103,68 +108,116 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
                     onChanged: (v) => setState(() => _search = v),
                     style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                     decoration: const InputDecoration(
-                      hintText: "Filter students by name, email, or Student ID...",
+                      hintText: "Search registered students by name, ID, or email...",
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
+                      hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 13),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.space6),
-
-          Text("Registered Students (${filtered.length})", style: AppTypography.h3(context, color: AppColors.textPrimary)),
           const SizedBox(height: AppSpacing.space4),
 
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filtered.length,
-              separatorBuilder: (ctx, i) => const Divider(height: 1),
-              itemBuilder: (ctx, idx) {
-                final s = filtered[idx];
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      AppAvatar(name: s["name"] ?? "Student", radius: 20),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(s["name"], style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: AppRadii.badgeRadius),
-                                  child: Text(s["studentId"], style: const TextStyle(fontSize: 11, color: AppColors.primaryLight, fontWeight: FontWeight.w600)),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text("${s["email"]} • ${s["college"]}", style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                          ],
+          if (_isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(40),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (filtered.isEmpty)
+            AppCard(
+              padding: const EdgeInsets.all(48),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Icon(LucideIcons.users, size: 48, color: AppColors.textMuted),
+                    const SizedBox(height: 16),
+                    Text(
+                      _students.isEmpty ? "No Students Registered Yet" : "No Matching Students",
+                      style: AppTypography.h4(context, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _students.isEmpty
+                          ? "All dummy students have been removed. When students create a profile, they will appear here directly from the database."
+                          : "No students matched your search criteria.",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filtered.length,
+                separatorBuilder: (ctx, i) => const Divider(height: 1),
+                itemBuilder: (ctx, idx) {
+                  final s = filtered[idx];
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        AppAvatar(name: s["name"] ?? "User", imageUrl: s["avatar"], radius: 22),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(s["name"], style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
+                                  const SizedBox(width: 8),
+                                  AppBadge(
+                                    label: s["status"],
+                                    color: s["status"] == "Active" ? AppColors.success.withOpacity(0.15) : AppColors.error.withOpacity(0.15),
+                                    textColor: s["status"] == "Active" ? AppColors.success : AppColors.error,
+                                    isPill: true,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text("${s["studentId"]} • ${s["email"]}", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                              Text(s["college"], style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                            ],
+                          ),
                         ),
-                      ),
-                      if (!isMob) ...[
-                        Text("Accuracy: ${s["accuracy"]}", style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                        const SizedBox(width: 20),
-                        Text("Points: ${s["points"]} XP", style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primaryLight, fontSize: 13)),
-                        const SizedBox(width: 20),
+                        if (!isMob) ...[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text("${s["points"]} XP", style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryLight, fontSize: 13)),
+                              Text("Solved: ${s["solved"]} • Acc: ${s["accuracy"]}", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                            ],
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+                        IconButton(
+                          icon: Icon(
+                            s["status"] == "Active" ? LucideIcons.userX : LucideIcons.userCheck,
+                            size: 18,
+                            color: s["status"] == "Active" ? AppColors.warning : AppColors.success,
+                          ),
+                          tooltip: s["status"] == "Active" ? "Suspend Student" : "Activate Student",
+                          onPressed: () async {
+                            try {
+                              await ApiClient().dio.patch("/admin/students/${s["id"]}/status");
+                              _fetchStudents();
+                            } catch (_) {}
+                          },
+                        ),
                       ],
-                      const AppBadge(label: "ACTIVE", isPill: true, color: Color(0x2222C55E), textColor: AppColors.success),
-                    ],
-                  ),
-                );
-              },
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -178,8 +231,8 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
             child: Column(
               children: [
                 AppHeader(
-                  title: "Student Management",
-                  subtitle: "Directory, activity monitoring and student role controls",
+                  title: "Student Directory",
+                  subtitle: "Search, inspect, and manage learners enrolled in the database",
                   showStreak: false,
                   isDarkMode: isDark,
                   onThemeToggle: () => ref.read(themeProvider.notifier).toggleTheme(),

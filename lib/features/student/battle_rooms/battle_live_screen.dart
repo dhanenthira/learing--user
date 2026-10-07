@@ -7,10 +7,9 @@ import '../../../core/theme/app_radii.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_badge.dart';
-import '../../../core/widgets/app_avatar.dart';
-import '../../../core/widgets/responsive_layout.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/network/api_client.dart';
 
 class BattleLiveScreen extends StatefulWidget {
   final String roomCode;
@@ -27,24 +26,42 @@ class _BattleLiveScreenState extends State<BattleLiveScreen> {
   int _rivalScore = 0;
   bool _isFinished = false;
   String? _selectedOption;
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _battleQuestions = [
-    {
-      "q": "What is the time complexity of searching an element in a balanced Binary Search Tree?",
-      "opts": ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
-      "correct": "O(log n)"
-    },
-    {
-      "q": "Which data structure uses LIFO (Last In First Out) ordering?",
-      "opts": ["Queue", "Stack", "Array", "Linked List"],
-      "correct": "Stack"
-    },
-    {
-      "q": "A train crosses a 300m bridge in 20 seconds at 90 km/hr. Length of train?",
-      "opts": ["150m", "200m", "250m", "300m"],
-      "correct": "200m"
-    },
-  ];
+  List<Map<String, dynamic>> _battleQuestions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchQuestions();
+  }
+
+  Future<void> _fetchQuestions() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiClient().dio.get("/questions");
+      if (res.data != null && res.data is List && (res.data as List).isNotEmpty) {
+        setState(() {
+          _battleQuestions = List<Map<String, dynamic>>.from((res.data as List).map((q) => {
+            "q": q["title"] ?? q["content"] ?? "",
+            "opts": List<String>.from(q["options"] ?? []),
+            "correct": q["correct_answer"] ?? q["answer"] ?? "",
+          }));
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _battleQuestions = [];
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _battleQuestions = [];
+        _isLoading = false;
+      });
+    }
+  }
 
   void _handleOption(String opt) {
     if (_selectedOption != null) return;
@@ -64,7 +81,8 @@ class _BattleLiveScreenState extends State<BattleLiveScreen> {
       }
     });
 
-    Future.delayed(const Duration(milliseconds: 1200), () {
+    // Advance to next question after delay
+    Future.delayed(const Duration(milliseconds: 1400), () {
       if (!mounted) return;
       if (_currentQIndex < _battleQuestions.length - 1) {
         setState(() {
@@ -72,75 +90,111 @@ class _BattleLiveScreenState extends State<BattleLiveScreen> {
           _selectedOption = null;
         });
       } else {
-        setState(() {
-          _isFinished = true;
-        });
+        setState(() => _isFinished = true);
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final isMob = ResponsiveLayout.isMobile(context);
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_battleQuestions.isEmpty) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          title: Text("Battle Arena #${widget.roomCode}", style: const TextStyle(color: AppColors.textPrimary)),
+          leading: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft, color: AppColors.textPrimary),
+            onPressed: () => context.go("/student/battles"),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: AppCard(
+                padding: const EdgeInsets.all(36),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.swords, size: 48, color: AppColors.textMuted),
+                    const SizedBox(height: 16),
+                    Text(
+                      "No Battle Questions in Database",
+                      style: AppTypography.h4(context, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "There are currently no questions stored in the database for battle rounds. Only questions actually available in the database are displayed.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                    ),
+                    const SizedBox(height: 24),
+                    AppButton(
+                      text: "Back to Battle Rooms",
+                      variant: AppButtonVariant.primary,
+                      onPressed: () => context.go("/student/battles"),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     if (_isFinished) {
-      final iWon = _myScore >= _rivalScore;
+      final didWin = _myScore >= _rivalScore;
       return Scaffold(
         backgroundColor: AppColors.background,
         body: Center(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 520),
-            padding: const EdgeInsets.all(AppSpacing.space6),
+            constraints: const BoxConstraints(maxWidth: 460),
+            padding: const EdgeInsets.all(32),
             child: AppCard(
-              backgroundColor: AppColors.surfaceElevated,
-              borderColor: iWon ? AppColors.success : AppColors.secondary,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: iWon ? AppColors.success.withOpacity(0.15) : AppColors.primary.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(iWon ? LucideIcons.trophy : LucideIcons.award, size: 40, color: iWon ? AppColors.streak : AppColors.primaryLight),
+                  Icon(
+                    didWin ? LucideIcons.trophy : LucideIcons.frown,
+                    size: 64,
+                    color: didWin ? AppColors.warning : AppColors.textMuted,
                   ),
-                  const SizedBox(height: AppSpacing.space4),
-                  Text(iWon ? "Victory! You Won!" : "Good Match!", style: AppTypography.h1(context, color: AppColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text(
-                    iWon ? "You scored higher with faster accurate responses!" : "Well played battle against Sophia Chen.",
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                  ),
-                  const Divider(height: 36),
-
+                  const SizedBox(height: 16),
+                  Text(didWin ? "VICTORY!" : "DEFEAT", style: AppTypography.h1(context, color: didWin ? AppColors.success : AppColors.error)),
+                  const SizedBox(height: 8),
+                  Text("Match Concluded in Room #${widget.roomCode}", style: const TextStyle(color: AppColors.textMuted)),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       Column(
                         children: [
-                          const AppAvatar(name: "Alex", radius: 22),
-                          const SizedBox(height: 4),
-                          const Text("Alex (You)", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                          Text("$_myScore pts", style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.primaryLight)),
+                          const Text("Your Score", style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          Text("$_myScore", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.primary)),
                         ],
                       ),
-                      const Text("VS", style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textMuted, fontSize: 18)),
                       Column(
                         children: [
-                          const AppAvatar(name: "Sophia Chen", radius: 22),
-                          const SizedBox(height: 4),
-                          const Text("Sophia Chen", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                          Text("$_rivalScore pts", style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.secondary)),
+                          const Text("Rival Score", style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          Text("$_rivalScore", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.secondary)),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.space6),
-
+                  const SizedBox(height: 32),
                   AppButton(
-                    text: "Return to Battle Hub",
+                    text: "Return to Arena Lobby",
                     variant: AppButtonVariant.primary,
                     width: double.infinity,
                     onPressed: () => context.go("/student/battles"),
@@ -160,44 +214,39 @@ class _BattleLiveScreenState extends State<BattleLiveScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Text("Live Battle Arena • ${widget.roomCode}", style: const TextStyle(fontSize: 15, color: AppColors.textPrimary)),
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft),
-          onPressed: () => context.go("/student/battles"),
-        ),
+        title: Text("1v1 Live Arena • Room #${widget.roomCode}", style: const TextStyle(fontSize: 15, color: AppColors.textPrimary)),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isMob ? AppSpacing.pagePaddingMobile : AppSpacing.pagePaddingDesktop),
+        padding: const EdgeInsets.all(AppSpacing.space6),
         child: Column(
           children: [
-            // Top Live Scoreboard
+            // Score Header Matchup
             AppCard(
-              backgroundColor: const Color(0xFF1E1B4B),
+              backgroundColor: AppColors.surfaceElevated,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Row(
                 children: [
-                  // You
-                  const CircleAvatar(radius: 20, backgroundImage: NetworkImage("https://api.dicebear.com/7.x/avataaars/svg?seed=Alex")),
-                  const SizedBox(width: 10),
+                  const CircleAvatar(radius: 20, backgroundImage: NetworkImage("https://api.dicebear.com/7.x/avataaars/svg?seed=You")),
+                  const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Alex (You)", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13)),
-                      Text("$_myScore XP", style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryLight, fontSize: 16)),
+                      const Text("You", style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                      Text("$_myScore PTS", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryLight)),
                     ],
                   ),
                   const Spacer(),
-                  const Icon(LucideIcons.swords, color: AppColors.purple, size: 24),
+                  const Text("VS", style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.textMuted, fontSize: 18)),
                   const Spacer(),
-                  // Rival
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text("Sophia Chen", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13)),
-                      Text("$_rivalScore XP", style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.secondary, fontSize: 16)),
+                      const Text("Rival", style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                      Text("$_rivalScore PTS", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.streak)),
                     ],
                   ),
-                  const SizedBox(width: 10),
-                  const CircleAvatar(radius: 20, backgroundImage: NetworkImage("https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia")),
+                  const SizedBox(width: 12),
+                  const CircleAvatar(radius: 20, backgroundImage: NetworkImage("https://api.dicebear.com/7.x/avataaars/svg?seed=Rival")),
                 ],
               ),
             ),

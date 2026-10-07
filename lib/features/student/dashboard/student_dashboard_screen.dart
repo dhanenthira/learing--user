@@ -16,13 +16,45 @@ import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/theme_service.dart';
-import '../../../core/widgets/coming_soon_modal.dart';
+import '../../../core/network/api_client.dart';
 
-class StudentDashboardScreen extends ConsumerWidget {
+class StudentDashboardScreen extends ConsumerStatefulWidget {
   const StudentDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StudentDashboardScreen> createState() => _StudentDashboardScreenState();
+}
+
+class _StudentDashboardScreenState extends ConsumerState<StudentDashboardScreen> {
+  List<Map<String, dynamic>> _leaderboard = [];
+  bool _isLoadingLeaderboard = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLeaderboard();
+  }
+
+  Future<void> _fetchLeaderboard() async {
+    try {
+      final res = await ApiClient().dio.get("/leaderboard");
+      if (res.data is List && mounted) {
+        setState(() {
+          _leaderboard = (res.data as List).map((e) => Map<String, dynamic>.from(e)).toList();
+          _isLoadingLeaderboard = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoadingLeaderboard = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isDark = ref.watch(themeProvider) == ThemeMode.dark;
     final user = authState.user;
@@ -40,7 +72,7 @@ class StudentDashboardScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Welcome Section
+          // 1. Welcome Section (Real User Profile Data)
           AppCard(
             isElevated: true,
             child: Row(
@@ -53,7 +85,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              "Welcome back, ${user?.name ?? 'Alex'}!",
+                              "Welcome back, ${user != null && user.name.isNotEmpty ? user.name : 'Learner'}!",
                               style: AppTypography.h2(context, color: primaryTextColor),
                             ),
                           ),
@@ -66,7 +98,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
                             ),
                             child: Text(
-                              user?.studentId ?? "CA-2026-9042",
+                              user?.studentId ?? "CA-2026",
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -78,7 +110,9 @@ class StudentDashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.space2),
                       Text(
-                        "You're on a 14-day learning streak! Solve today's technical practice and climb the leaderboard.",
+                        (user != null && user.streakDays > 0)
+                            ? "You're on a ${user.streakDays}-day learning streak! Keep practicing to climb the leaderboard."
+                            : "Welcome to CodeArena! Start practicing questions to build your streak and earn points.",
                         style: TextStyle(color: secondaryTextColor, fontSize: 14),
                       ),
                       const SizedBox(height: AppSpacing.space4),
@@ -136,35 +170,35 @@ class StudentDashboardScreen extends ConsumerWidget {
                 children: [
                   StatCard(
                     label: "Questions Solved",
-                    value: "${user?.questionsSolved ?? 380}",
+                    value: "${user?.questionsSolved ?? 0}",
                     icon: LucideIcons.checkCircle2,
                     iconColor: AppColors.success,
-                    subtitle: "+18 this week",
-                    progress: 0.72,
+                    subtitle: "Recorded in DB",
+                    progress: (user != null && user.questionsSolved > 0) ? 0.5 : 0.0,
                   ),
                   StatCard(
                     label: "Overall Accuracy",
-                    value: "${user?.overallAccuracy ?? 88.2}%",
+                    value: "${user?.overallAccuracy != null ? user!.overallAccuracy.toStringAsFixed(1) : "0.0"}%",
                     icon: LucideIcons.target,
                     iconColor: AppColors.primary,
-                    subtitle: "Top 5% Tier",
-                    progress: 0.88,
+                    subtitle: "Accuracy score",
+                    progress: (user != null && user.overallAccuracy > 0) ? (user.overallAccuracy / 100.0) : 0.0,
                   ),
                   StatCard(
                     label: "Coding Solved",
-                    value: "${user?.codingProblemsSolved ?? 56}",
+                    value: "${user?.codingProblemsSolved ?? 0}",
                     icon: LucideIcons.code2,
                     iconColor: AppColors.secondary,
-                    subtitle: "LeetCode & Arenas",
-                    progress: 0.65,
+                    subtitle: "Problems solved",
+                    progress: (user != null && user.codingProblemsSolved > 0) ? 0.4 : 0.0,
                   ),
                   StatCard(
                     label: "Battles Won",
-                    value: "${user?.battlesWon ?? 19}",
+                    value: "${user?.battlesWon ?? 0}",
                     icon: LucideIcons.swords,
                     iconColor: AppColors.streak,
-                    subtitle: "Win Rate 76%",
-                    progress: 0.76,
+                    subtitle: "Arena battles",
+                    progress: (user != null && user.battlesWon > 0) ? 0.5 : 0.0,
                   ),
                 ],
               );
@@ -203,35 +237,34 @@ class StudentDashboardScreen extends ConsumerWidget {
                           _buildPracticeRow(
                             context,
                             isDark: isDark,
-                            title: "Daily Aptitude Challenge #42",
-                            topic: "Time & Distance • Profit & Loss",
-                            duration: "10 mins",
-                            difficulty: "Easy",
-                            isCompleted: false,
-                            onTap: () => context.go("/student/practice"),
-                          ),
-                          const Divider(height: 24),
-                          _buildPracticeRow(
-                            context,
-                            isDark: isDark,
-                            title: "Daily Technical Challenge #42",
-                            topic: "DSA Complexity • Computer Networks",
-                            duration: "8 mins",
-                            difficulty: "Medium",
-                            isCompleted: true,
-                            onTap: () => context.go("/student/practice"),
-                          ),
-                          const Divider(height: 24),
-                          _buildPracticeRow(
-                            context,
-                            isDark: isDark,
-                            title: "Communication Practice",
-                            topic: "Corporate Etiquette & Verbal Reasoning",
+                            title: "Quantitative & Logical Aptitude",
+                            topic: "Speed Math • Percentages • Logical Reasoning",
                             duration: "15 mins",
-                            difficulty: "Easy",
+                            difficulty: "Aptitude",
+                            isCompleted: (user != null && user.questionsSolved > 0),
+                            onTap: () => context.go("/student/practice/session/aptitude"),
+                          ),
+                          const Divider(height: 24),
+                          _buildPracticeRow(
+                            context,
+                            isDark: isDark,
+                            title: "Technical & Core CS Track",
+                            topic: "Data Structures, Algorithms & Computer Networks",
+                            duration: "15 mins",
+                            difficulty: "Technical",
                             isCompleted: false,
-                            isComingSoon: true,
-                            onTap: () => ComingSoonModal.show(context),
+                            onTap: () => context.go("/student/practice/session/technical"),
+                          ),
+                          const Divider(height: 24),
+                          _buildPracticeRow(
+                            context,
+                            isDark: isDark,
+                            title: "Mixed Placement Challenge",
+                            topic: "Balanced Placement Assessment (Aptitude + CS)",
+                            duration: "20 mins",
+                            difficulty: "Mixed",
+                            isCompleted: false,
+                            onTap: () => context.go("/student/practice/session/mixed"),
                           ),
                         ],
                       ),
@@ -283,7 +316,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  "Arrays & Hash Table • 82.4% Acceptance • 450 Submissions",
+                                  "Arrays & Hash Table • Live Problem in Database",
                                   style: TextStyle(color: mutedTextColor, fontSize: 13),
                                 ),
                               ],
@@ -320,17 +353,36 @@ class StudentDashboardScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.space3),
 
                       AppCard(
-                        child: Column(
-                          children: [
-                            _buildLeaderboardRow("1", "Sophia Chen", "5,620 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia", isGold: true, isDark: isDark),
-                            const Divider(height: 18),
-                            _buildLeaderboardRow("2", user?.name ?? "Alex Mercer", "4,850 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex", isYou: true, isDark: isDark),
-                            const Divider(height: 18),
-                            _buildLeaderboardRow("3", "Marcus Vance", "4,310 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus", isDark: isDark),
-                            const Divider(height: 18),
-                            _buildLeaderboardRow("4", "Elena Rostova", "3,980 XP", "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena", isDark: isDark),
-                          ],
-                        ),
+                        child: _isLoadingLeaderboard
+                            ? const Padding(
+                                padding: EdgeInsets.all(20.0),
+                                child: Center(child: CircularProgressIndicator()),
+                              )
+                            : (_leaderboard.isEmpty
+                                ? (user != null
+                                    ? _buildLeaderboardRow("1", user.name, "${user.totalPoints} XP", user.avatarUrl ?? "", isGold: true, isYou: true, isDark: isDark)
+                                    : Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Center(
+                                          child: Text("No rankings recorded yet.", style: TextStyle(color: mutedTextColor, fontSize: 13)),
+                                        ),
+                                      ))
+                                : Column(
+                                    children: [
+                                      for (int i = 0; i < _leaderboard.take(4).length; i++) ...[
+                                        if (i > 0) const Divider(height: 18),
+                                        _buildLeaderboardRow(
+                                          "${_leaderboard[i]['rank'] ?? (i + 1)}",
+                                          _leaderboard[i]['name'] ?? "Student",
+                                          "${_leaderboard[i]['coding_points'] ?? _leaderboard[i]['points'] ?? 0} XP",
+                                          _leaderboard[i]['avatar_url'] ?? _leaderboard[i]['avatar'] ?? "",
+                                          isGold: i == 0,
+                                          isYou: _leaderboard[i]['user_id'] == user?.id || _leaderboard[i]['student_id'] == user?.studentId,
+                                          isDark: isDark,
+                                        ),
+                                      ],
+                                    ],
+                                  )),
                       ),
                       const SizedBox(height: AppSpacing.space6),
 
@@ -389,7 +441,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                 AppHeader(
                   title: "Student Dashboard",
                   subtitle: "CodeArena Learning & Competition Suite",
-                  streakDays: user?.streakDays ?? 14,
+                  streakDays: user?.streakDays ?? 0,
                   isDarkMode: isDark,
                   onThemeToggle: () => ref.read(themeProvider.notifier).toggleTheme(),
                 ),
@@ -499,7 +551,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 8),
-        AppAvatar(name: name, radius: 14),
+        AppAvatar(name: name, imageUrl: avatar.isNotEmpty ? avatar : null, radius: 14),
         const SizedBox(width: 10),
         Expanded(
           child: Text(

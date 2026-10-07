@@ -65,15 +65,36 @@ class AppAvatar extends StatelessWidget {
           width: 1.5,
         ),
       ),
-      child: Center(
-        child: Text(
-          _initials,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: radius * 0.85,
-          ),
-        ),
+      child: ClipOval(
+        child: (imageUrl != null && imageUrl!.trim().isNotEmpty)
+            ? Image.network(
+                imageUrl!.trim(),
+                width: radius * 2,
+                height: radius * 2,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(
+                    child: Text(
+                      _initials,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: radius * 0.85,
+                      ),
+                    ),
+                  );
+                },
+              )
+            : Center(
+                child: Text(
+                  _initials,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: radius * 0.85,
+                  ),
+                ),
+              ),
       ),
     );
 
