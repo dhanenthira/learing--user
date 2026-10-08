@@ -239,6 +239,7 @@ class _DailyPracticeHomeScreenState extends ConsumerState<DailyPracticeHomeScree
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/practice")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/practice"),

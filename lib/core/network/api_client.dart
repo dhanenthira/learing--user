@@ -10,9 +10,9 @@ class ApiClient {
   
   static String getBaseUrl() {
     if (kIsWeb) {
-      return "http://localhost:8000/api/v1";
+      return "http://localhost:8001/api/v1";
     }
-    return "http://192.168.1.108:8000/api/v1";
+    return "http://192.168.1.108:8001/api/v1";
   }
 
   ApiClient._internal() {

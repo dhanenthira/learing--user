@@ -185,6 +185,7 @@ class TestsListScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/tests")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/tests"),

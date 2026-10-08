@@ -178,6 +178,7 @@ class StudentReportsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/reports")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/reports"),

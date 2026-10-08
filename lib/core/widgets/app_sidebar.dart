@@ -162,6 +162,9 @@ class AppSidebar extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
+                      if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
+                        Navigator.of(context).pop();
+                      }
                       if (item.isComingSoon) {
                         ComingSoonModal.show(context);
                       } else {
@@ -233,52 +236,49 @@ class AppSidebar extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Material(
-                  color: isAdmin
-                      ? AppColors.primary.withOpacity(isDark ? 0.12 : 0.08)
-                      : AppColors.error.withOpacity(isDark ? 0.12 : 0.08),
-                  borderRadius: AppRadii.inputRadius,
-                  child: InkWell(
-                    onTap: () {
-                      if (isAdmin) {
-                        context.go("/student/dashboard");
-                      } else {
-                        context.go("/admin/dashboard");
-                      }
-                    },
+                if (isAdmin) ...[
+                  Material(
+                    color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.08),
                     borderRadius: AppRadii.inputRadius,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isAdmin ? LucideIcons.userRound : LucideIcons.shieldAlert,
-                            size: 18,
-                            color: isAdmin ? (isDark ? AppColors.primaryLight : AppColors.primaryDark) : AppColors.error,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              isAdmin ? "Switch to Student View" : "Admin Console",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: isAdmin
-                                    ? (isDark ? AppColors.primaryLight : AppColors.primaryDark)
-                                    : AppColors.error,
+                    child: InkWell(
+                      onTap: () {
+                        context.go("/student/dashboard");
+                      },
+                      borderRadius: AppRadii.inputRadius,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              LucideIcons.userRound,
+                              size: 18,
+                              color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                "Switch to Student View",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                ],
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
+                      if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
+                        Navigator.of(context).pop();
+                      }
                       context.go(isAdmin ? "/admin/login" : "/auth/login");
                     },
                     borderRadius: AppRadii.inputRadius,

@@ -9,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_sidebar.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_badge.dart';
@@ -301,8 +302,11 @@ class _LessonViewerScreenState extends ConsumerState<LessonViewerScreen> {
           const SizedBox(height: AppSpacing.space6),
 
           // Bottom Actions & Navigation
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               AppButton(
                 text: "← Previous Topic",
@@ -330,27 +334,41 @@ class _LessonViewerScreenState extends ConsumerState<LessonViewerScreen> {
       ),
     );
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Row(
-        children: [
-          if (!isMob) const AppSidebar(currentRoute: "/student/learning"),
-          if (!isMob) topicNav,
-          Expanded(
-            child: Column(
-              children: [
-                AppHeader(
-                  title: "Python Programming",
-                  subtitle: _topics[_selectedTopicIndex]["title"],
-                  isDarkMode: isDark,
-                  onThemeToggle: () => ref.read(themeProvider.notifier).toggleTheme(),
+    return Builder(
+      builder: (scaffoldContext) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/learning")) : null,
+          endDrawer: isMob ? Drawer(child: topicNav) : null,
+          body: Row(
+            children: [
+              if (!isMob) const AppSidebar(currentRoute: "/student/learning"),
+              if (!isMob) topicNav,
+              Expanded(
+                child: Column(
+                  children: [
+                    AppHeader(
+                      title: "Python Programming",
+                      subtitle: _topics[_selectedTopicIndex]["title"],
+                      isDarkMode: isDark,
+                      onThemeToggle: () => ref.read(themeProvider.notifier).toggleTheme(),
+                      trailing: isMob
+                          ? IconButton(
+                              icon: const Icon(LucideIcons.bookOpen, size: 20, color: AppColors.primary),
+                              tooltip: "View Curriculum Topics",
+                              onPressed: () => Scaffold.of(scaffoldContext).openEndDrawer(),
+                            )
+                          : null,
+                    ),
+                    Expanded(child: mainLesson),
+                  ],
                 ),
-                Expanded(child: mainLesson),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+          bottomNavigationBar: isMob ? const AppBottomNav(currentRoute: "/student/learning") : null,
+        );
+      },
     );
   }
 

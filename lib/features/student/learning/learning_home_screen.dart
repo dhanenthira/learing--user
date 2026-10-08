@@ -251,6 +251,7 @@ class LearningHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/learning")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/learning"),

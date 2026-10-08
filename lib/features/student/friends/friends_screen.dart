@@ -199,6 +199,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/friends")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/friends"),

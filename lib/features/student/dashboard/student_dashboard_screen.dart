@@ -39,8 +39,17 @@ class _StudentDashboardScreenState extends ConsumerState<StudentDashboardScreen>
     try {
       final res = await ApiClient().dio.get("/leaderboard");
       if (res.data is List && mounted) {
+        final raw = (res.data as List).map((e) => Map<String, dynamic>.from(e)).toList();
+        final seen = <String>{};
+        final unique = <Map<String, dynamic>>[];
+        for (final item in raw) {
+          final id = (item['user_id'] ?? item['student_id'] ?? item['name'] ?? '').toString();
+          if (id.isNotEmpty && seen.add(id)) {
+            unique.add(item);
+          }
+        }
         setState(() {
-          _leaderboard = (res.data as List).map((e) => Map<String, dynamic>.from(e)).toList();
+          _leaderboard = unique;
           _isLoadingLeaderboard = false;
         });
       }
@@ -159,14 +168,16 @@ class _StudentDashboardScreenState extends ConsumerState<StudentDashboardScreen>
           // 2. Statistics Grid
           LayoutBuilder(
             builder: (ctx, constraints) {
-              int crossAxisCount = constraints.maxWidth < 600 ? 1 : (constraints.maxWidth < 1100 ? 2 : 4);
+              int crossAxisCount = constraints.maxWidth < 600
+                  ? (constraints.maxWidth < 360 ? 1 : 2)
+                  : (constraints.maxWidth < 1100 ? 2 : 4);
               return GridView.count(
                 crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: crossAxisCount == 1 ? 2.5 : 1.45,
+                childAspectRatio: crossAxisCount == 1 ? 2.5 : (crossAxisCount == 2 ? 1.45 : 1.45),
                 children: [
                   StatCard(
                     label: "Questions Solved",
@@ -207,131 +218,327 @@ class _StudentDashboardScreenState extends ConsumerState<StudentDashboardScreen>
           const SizedBox(height: AppSpacing.space8),
 
           // 3. Main Dashboard Sections
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left Column (Daily Practice & Learning)
-              Expanded(
-                flex: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Daily Practice Card
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text("Today's Practice Sets", style: AppTypography.h3(context, color: primaryTextColor)),
-                        ),
-                        TextButton(
-                          onPressed: () => context.go("/student/practice"),
-                          child: Text("View All →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.space3),
-
-                    AppCard(
-                      child: Column(
-                        children: [
-                          _buildPracticeRow(
-                            context,
-                            isDark: isDark,
-                            title: "Quantitative & Logical Aptitude",
-                            topic: "Speed Math • Percentages • Logical Reasoning",
-                            duration: "15 mins",
-                            difficulty: "Aptitude",
-                            isCompleted: (user != null && user.questionsSolved > 0),
-                            onTap: () => context.go("/student/practice/session/aptitude"),
-                          ),
-                          const Divider(height: 24),
-                          _buildPracticeRow(
-                            context,
-                            isDark: isDark,
-                            title: "Technical & Core CS Track",
-                            topic: "Data Structures, Algorithms & Computer Networks",
-                            duration: "15 mins",
-                            difficulty: "Technical",
-                            isCompleted: false,
-                            onTap: () => context.go("/student/practice/session/technical"),
-                          ),
-                          const Divider(height: 24),
-                          _buildPracticeRow(
-                            context,
-                            isDark: isDark,
-                            title: "Mixed Placement Challenge",
-                            topic: "Balanced Placement Assessment (Aptitude + CS)",
-                            duration: "20 mins",
-                            difficulty: "Mixed",
-                            isCompleted: false,
-                            onTap: () => context.go("/student/practice/session/mixed"),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.space6),
-
-                    // Coding Arena Highlight
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text("Recommended Coding Problem", style: AppTypography.h3(context, color: primaryTextColor)),
-                        ),
-                        TextButton(
-                          onPressed: () => context.go("/student/coding"),
-                          child: Text("Open Arena →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.space3),
-
-                    AppCard(
-                      onTap: () => context.go("/student/coding/workspace/cp_two_sum"),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.1),
-                              borderRadius: AppRadii.inputRadius,
-                            ),
-                            child: const Icon(LucideIcons.code2, color: AppColors.primary, size: 24),
-                          ),
-                          const SizedBox(width: AppSpacing.space4),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      "Two Sum Target Indices",
-                                      style: AppTypography.h4(context, color: primaryTextColor),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    AppBadge.difficulty("easy"),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Arrays & Hash Table • Live Problem in Database",
-                                  style: TextStyle(color: mutedTextColor, fontSize: 13),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(LucideIcons.chevronRight, color: mutedTextColor),
-                        ],
-                      ),
-                    ),
-                  ],
+          if (isMob) ...[
+            // Today's Practice Sets
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text("Today's Practice Sets", style: AppTypography.h3(context, color: primaryTextColor)),
                 ),
+                TextButton(
+                  onPressed: () => context.go("/student/practice"),
+                  child: Text("View All →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.space3),
+            AppCard(
+              child: Column(
+                children: [
+                  _buildPracticeRow(
+                    context,
+                    isDark: isDark,
+                    title: "Quantitative & Logical Aptitude",
+                    topic: "Speed Math • Percentages • Logical Reasoning",
+                    duration: "15 mins",
+                    difficulty: "Aptitude",
+                    isCompleted: (user != null && user.questionsSolved > 0),
+                    onTap: () => context.go("/student/practice/session/aptitude"),
+                  ),
+                  const Divider(height: 24),
+                  _buildPracticeRow(
+                    context,
+                    isDark: isDark,
+                    title: "Technical & Core CS Track",
+                    topic: "Data Structures, Algorithms & Computer Networks",
+                    duration: "15 mins",
+                    difficulty: "Technical",
+                    isCompleted: false,
+                    onTap: () => context.go("/student/practice/session/technical"),
+                  ),
+                  const Divider(height: 24),
+                  _buildPracticeRow(
+                    context,
+                    isDark: isDark,
+                    title: "Mixed Placement Challenge",
+                    topic: "Balanced Placement Assessment (Aptitude + CS)",
+                    duration: "20 mins",
+                    difficulty: "Mixed",
+                    isCompleted: false,
+                    onTap: () => context.go("/student/practice/session/mixed"),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(height: AppSpacing.space6),
 
-              if (!isMob) ...[
+            // Recommended Coding Problem
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text("Recommended Coding Problem", style: AppTypography.h3(context, color: primaryTextColor)),
+                ),
+                TextButton(
+                  onPressed: () => context.go("/student/coding"),
+                  child: Text("Open Arena →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.space3),
+            AppCard(
+              onTap: () => context.go("/student/coding/workspace/cp_two_sum"),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.1),
+                      borderRadius: AppRadii.inputRadius,
+                    ),
+                    child: const Icon(LucideIcons.code2, color: AppColors.primary, size: 24),
+                  ),
+                  const SizedBox(width: AppSpacing.space4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            Text(
+                              "Two Sum Target Indices",
+                              style: AppTypography.h4(context, color: primaryTextColor),
+                            ),
+                            AppBadge.difficulty("easy"),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Arrays & Hash Table • Live Problem in Database",
+                          style: TextStyle(color: mutedTextColor, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(LucideIcons.chevronRight, color: mutedTextColor),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.space6),
+
+            // Leaderboard on mobile
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text("Leaderboard", style: AppTypography.h3(context, color: primaryTextColor)),
+                ),
+                TextButton(
+                  onPressed: () => context.go("/student/leaderboard"),
+                  child: Text("Full Rankings →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.space3),
+            AppCard(
+              child: _isLoadingLeaderboard
+                  ? const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : (_leaderboard.isEmpty
+                      ? (user != null
+                          ? _buildLeaderboardRow("1", user.name, "${user.totalPoints} XP", user.avatarUrl ?? "", isGold: true, isYou: true, isDark: isDark)
+                          : Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Center(
+                                child: Text("No rankings recorded yet.", style: TextStyle(color: mutedTextColor, fontSize: 13)),
+                              ),
+                            ))
+                      : Column(
+                          children: [
+                            for (int i = 0; i < _leaderboard.take(4).length; i++) ...[
+                              if (i > 0) const Divider(height: 18),
+                              _buildLeaderboardRow(
+                                "${_leaderboard[i]['rank'] ?? (i + 1)}",
+                                _leaderboard[i]['name'] ?? "Student",
+                                "${_leaderboard[i]['coding_points'] ?? _leaderboard[i]['points'] ?? 0} XP",
+                                _leaderboard[i]['avatar_url'] ?? _leaderboard[i]['avatar'] ?? "",
+                                isGold: i == 0,
+                                isYou: _leaderboard[i]['user_id'] == user?.id || _leaderboard[i]['student_id'] == user?.studentId,
+                                isDark: isDark,
+                              ),
+                            ],
+                          ],
+                        )),
+            ),
+            const SizedBox(height: AppSpacing.space6),
+
+            // Battle Room Call to Action on mobile
+            AppCard(
+              backgroundColor: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFF3E8FF),
+              borderColor: AppColors.secondary.withOpacity(isDark ? 0.5 : 0.3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(LucideIcons.swords, color: AppColors.purple, size: 22),
+                      const SizedBox(width: 8),
+                      Text(
+                        "1v1 Live Battle",
+                        style: AppTypography.h4(context, color: primaryTextColor),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Challenge friends or join an active match to win XP & trophy badges.",
+                    style: TextStyle(color: secondaryTextColor, fontSize: 13),
+                  ),
+                  const SizedBox(height: AppSpacing.space4),
+                  AppButton(
+                    text: "Create Battle Room",
+                    variant: AppButtonVariant.primary,
+                    icon: LucideIcons.plus,
+                    width: double.infinity,
+                    onPressed: () => context.go("/student/battles"),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left Column (Daily Practice & Learning)
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Daily Practice Card
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text("Today's Practice Sets", style: AppTypography.h3(context, color: primaryTextColor)),
+                          ),
+                          TextButton(
+                            onPressed: () => context.go("/student/practice"),
+                            child: Text("View All →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.space3),
+
+                      AppCard(
+                        child: Column(
+                          children: [
+                            _buildPracticeRow(
+                              context,
+                              isDark: isDark,
+                              title: "Quantitative & Logical Aptitude",
+                              topic: "Speed Math • Percentages • Logical Reasoning",
+                              duration: "15 mins",
+                              difficulty: "Aptitude",
+                              isCompleted: (user != null && user.questionsSolved > 0),
+                              onTap: () => context.go("/student/practice/session/aptitude"),
+                            ),
+                            const Divider(height: 24),
+                            _buildPracticeRow(
+                              context,
+                              isDark: isDark,
+                              title: "Technical & Core CS Track",
+                              topic: "Data Structures, Algorithms & Computer Networks",
+                              duration: "15 mins",
+                              difficulty: "Technical",
+                              isCompleted: false,
+                              onTap: () => context.go("/student/practice/session/technical"),
+                            ),
+                            const Divider(height: 24),
+                            _buildPracticeRow(
+                              context,
+                              isDark: isDark,
+                              title: "Mixed Placement Challenge",
+                              topic: "Balanced Placement Assessment (Aptitude + CS)",
+                              duration: "20 mins",
+                              difficulty: "Mixed",
+                              isCompleted: false,
+                              onTap: () => context.go("/student/practice/session/mixed"),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.space6),
+
+                      // Coding Arena Highlight
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text("Recommended Coding Problem", style: AppTypography.h3(context, color: primaryTextColor)),
+                          ),
+                          TextButton(
+                            onPressed: () => context.go("/student/coding"),
+                            child: Text("Open Arena →", style: TextStyle(color: isDark ? AppColors.primary : AppColors.primaryDark)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.space3),
+
+                      AppCard(
+                        onTap: () => context.go("/student/coding/workspace/cp_two_sum"),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.1),
+                                borderRadius: AppRadii.inputRadius,
+                              ),
+                              child: const Icon(LucideIcons.code2, color: AppColors.primary, size: 24),
+                            ),
+                            const SizedBox(width: AppSpacing.space4),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 8,
+                                    runSpacing: 4,
+                                    children: [
+                                      Text(
+                                        "Two Sum Target Indices",
+                                        style: AppTypography.h4(context, color: primaryTextColor),
+                                      ),
+                                      AppBadge.difficulty("easy"),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Arrays & Hash Table • Live Problem in Database",
+                                    style: TextStyle(color: mutedTextColor, fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(LucideIcons.chevronRight, color: mutedTextColor),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.space6),
+
                 // Right Column (Leaderboard & Quick Actions)
                 Expanded(
                   flex: 2,
@@ -388,7 +595,7 @@ class _StudentDashboardScreenState extends ConsumerState<StudentDashboardScreen>
 
                       // Battle Room Call to Action
                       AppCard(
-                        backgroundColor: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFF3E8FF), // Indigo / Soft Purple
+                        backgroundColor: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFF3E8FF),
                         borderColor: AppColors.secondary.withOpacity(isDark ? 0.5 : 0.3),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,14 +630,15 @@ class _StudentDashboardScreenState extends ConsumerState<StudentDashboardScreen>
                   ),
                 ),
               ],
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/dashboard")) : null,
       body: Row(
         children: [
           if (!isMob)

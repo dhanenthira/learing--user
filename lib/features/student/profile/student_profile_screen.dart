@@ -350,6 +350,7 @@ class _StudentProfileScreenState extends ConsumerState<StudentProfileScreen> wit
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/profile")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/profile"),

@@ -51,9 +51,13 @@ class AppHeader extends ConsumerWidget {
     final titleColor = isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
     final subtitleColor = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMob = screenWidth < 768;
+    final isSmallPhone = screenWidth < 480;
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.space5,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMob ? AppSpacing.space3 : AppSpacing.space5,
         vertical: AppSpacing.space4,
       ),
       decoration: BoxDecoration(
@@ -62,6 +66,16 @@ class AppHeader extends ConsumerWidget {
       ),
       child: Row(
         children: [
+          // Hamburger menu on mobile
+          if (isMob) ...[
+            AppIconButton(
+              icon: LucideIcons.menu,
+              tooltip: "Open Navigation Menu",
+              onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
+            ),
+            const SizedBox(width: AppSpacing.space2),
+          ],
+
           // Title & Subtitle
           Expanded(
             child: Column(
@@ -70,11 +84,11 @@ class AppHeader extends ConsumerWidget {
               children: [
                 Text(
                   title,
-                  style: AppTypography.h3(context, color: titleColor),
+                  style: isMob ? AppTypography.h4(context, color: titleColor) : AppTypography.h3(context, color: titleColor),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (subtitle != null) ...[
+                if (subtitle != null && !isSmallPhone) ...[
                   const SizedBox(height: 2),
                   Text(
                     subtitle!,
@@ -90,10 +104,10 @@ class AppHeader extends ConsumerWidget {
             ),
           ),
 
-          // Streak Badge
-          if (showStreak) ...[
+          // Streak Badge (compact on small phone)
+          if (showStreak && !isSmallPhone) ...[
             AppBadge.streak(effectiveStreak),
-            const SizedBox(width: AppSpacing.space3),
+            const SizedBox(width: AppSpacing.space2),
           ],
 
           // Theme Toggle
@@ -102,15 +116,17 @@ class AppHeader extends ConsumerWidget {
             tooltip: "Toggle Theme",
             onPressed: onThemeToggle ?? () {},
           ),
-          const SizedBox(width: AppSpacing.space2),
+          const SizedBox(width: AppSpacing.space1),
 
-          // Search Button
-          AppIconButton(
-            icon: LucideIcons.search,
-            tooltip: "Search Students (@username)",
-            onPressed: () => context.go("/student/search"),
-          ),
-          const SizedBox(width: AppSpacing.space2),
+          // Search Button (hide on very narrow screen to prioritize profile)
+          if (!isSmallPhone) ...[
+            AppIconButton(
+              icon: LucideIcons.search,
+              tooltip: "Search Students (@username)",
+              onPressed: () => context.go("/student/search"),
+            ),
+            const SizedBox(width: AppSpacing.space1),
+          ],
 
           // Notifications Bell
           AppIconButton(
@@ -118,18 +134,18 @@ class AppHeader extends ConsumerWidget {
             tooltip: "Notifications",
             onPressed: onNotificationTap ?? () {},
           ),
-          const SizedBox(width: AppSpacing.space3),
+          const SizedBox(width: AppSpacing.space2),
 
-          // User Profile Avatar (Dynamically loaded from auth user)
+          // User Profile Avatar
           AppAvatar(
             name: displayName,
             imageUrl: displayAvatar,
-            radius: 18,
+            radius: 16,
             onTap: () => context.go("/student/profile"),
           ),
 
           if (trailing != null) ...[
-            const SizedBox(width: AppSpacing.space3),
+            const SizedBox(width: AppSpacing.space2),
             trailing!,
           ],
         ],

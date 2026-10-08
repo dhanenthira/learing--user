@@ -312,6 +312,7 @@ class _StudentSearchScreenState extends ConsumerState<StudentSearchScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/friends")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/friends"),

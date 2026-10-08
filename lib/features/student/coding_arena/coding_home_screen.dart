@@ -258,6 +258,7 @@ class _CodingHomeScreenState extends ConsumerState<CodingHomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: isMob ? const Drawer(child: AppSidebar(currentRoute: "/student/coding")) : null,
       body: Row(
         children: [
           if (!isMob) const AppSidebar(currentRoute: "/student/coding"),

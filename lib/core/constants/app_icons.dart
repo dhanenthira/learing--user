@@ -64,6 +64,7 @@ class AppIcons {
   static const IconData frown = Icons.sentiment_dissatisfied_rounded;
   static const IconData userX = Icons.person_off_rounded;
   static const IconData userCheck = Icons.how_to_reg_rounded;
+  static const IconData menu = Icons.menu_rounded;
 }
 
 // Global alias for compatibility
