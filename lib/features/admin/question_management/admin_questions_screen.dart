@@ -177,9 +177,10 @@ class _AdminQuestionsScreenState extends ConsumerState<AdminQuestionsScreen> {
                           "explanation": expCtrl.text.trim(),
                           "marks": 1,
                         };
+                        final nav = Navigator.of(context);
                         await ApiClient().dio.post("/questions", data: payload);
                         if (mounted) {
-                          Navigator.pop(context);
+                          nav.pop();
                           _fetchQuestions();
                         }
                       } catch (e) {

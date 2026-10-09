@@ -29,7 +29,6 @@ class _BattleHomeScreenState extends ConsumerState<BattleHomeScreen> {
   void _showCreateRoomDialog() {
     String roomName = "Grand Algorithm Showdown";
     String category = "technical";
-    String difficulty = "medium";
     int questionCount = 5;
 
     showDialog(

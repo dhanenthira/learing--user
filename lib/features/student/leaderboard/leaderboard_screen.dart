@@ -21,7 +21,6 @@ class LeaderboardScreen extends ConsumerStatefulWidget {
 
 class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   String _period = "All Time";
-  String _category = "All";
   List<Map<String, dynamic>> _rankings = [];
   bool _isLoading = true;
 

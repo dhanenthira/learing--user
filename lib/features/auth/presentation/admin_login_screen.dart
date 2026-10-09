@@ -149,9 +149,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                       children: const [
                         Icon(LucideIcons.keyRound, size: 14, color: AppColors.textMuted),
                         SizedBox(width: 6),
-                        Text(
-                          "Fill Demo Credentials (admin@codearena.com / admin123)",
-                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        Flexible(
+                          child: Text(
+                            "Fill Demo (admin@codearena.com / admin123)",
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

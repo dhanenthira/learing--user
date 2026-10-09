@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/main.dart';
+import 'package:frontend/app/router/app_router.dart';
 import 'package:frontend/core/widgets/app_button.dart';
 import 'package:frontend/core/widgets/app_badge.dart';
 import 'package:frontend/core/widgets/app_avatar.dart';
@@ -13,6 +14,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(const ProviderScope(child: CodeArenaApp()));
+    appRouter.go('/student/dashboard');
     await tester.pumpAndSettle();
 
     expect(find.byType(CodeArenaApp), findsOneWidget);

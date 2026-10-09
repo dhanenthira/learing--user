@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
 
 class AppAvatar extends StatelessWidget {
   final String name;

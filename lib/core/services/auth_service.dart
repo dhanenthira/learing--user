@@ -118,8 +118,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return true;
     } catch (e) {
       String msg = "Invalid email or password.";
-      if (e is DioException && e.response?.data != null) {
-        msg = e.response?.data["detail"] ?? msg;
+      if (e is DioException) {
+        if (e.response?.data != null && e.response?.data["detail"] != null) {
+          msg = e.response!.data["detail"].toString();
+        } else if (e.type == DioExceptionType.connectionTimeout ||
+                   e.type == DioExceptionType.receiveTimeout ||
+                   e.type == DioExceptionType.connectionError) {
+          msg = "Cannot connect to server (${ApiClient.getBaseUrl()}). Please ensure backend is running.";
+        }
       }
       state = state.copyWith(isAuthenticated: false, user: null, isLoading: false, error: msg);
       return false;
@@ -140,8 +146,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return true;
     } catch (e) {
       String msg = "Invalid administrator credentials or unauthorized.";
-      if (e is DioException && e.response?.data != null) {
-        msg = e.response?.data["detail"] ?? msg;
+      if (e is DioException) {
+        if (e.response?.data != null && e.response?.data["detail"] != null) {
+          msg = e.response!.data["detail"].toString();
+        } else if (e.type == DioExceptionType.connectionTimeout ||
+                   e.type == DioExceptionType.receiveTimeout ||
+                   e.type == DioExceptionType.connectionError) {
+          msg = "Cannot connect to server (${ApiClient.getBaseUrl()}). Please ensure backend is running.";
+        }
       }
       state = state.copyWith(isAuthenticated: false, user: null, isLoading: false, error: msg);
       return false;
@@ -165,8 +177,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return true;
     } catch (e) {
       String errorMsg = "Registration failed. Email may already be in use.";
-      if (e is DioException && e.response?.data != null) {
-        errorMsg = e.response?.data["detail"] ?? errorMsg;
+      if (e is DioException) {
+        if (e.response?.data != null && e.response?.data["detail"] != null) {
+          errorMsg = e.response!.data["detail"].toString();
+        } else if (e.type == DioExceptionType.connectionTimeout ||
+                   e.type == DioExceptionType.receiveTimeout ||
+                   e.type == DioExceptionType.connectionError) {
+          errorMsg = "Cannot connect to server (${ApiClient.getBaseUrl()}). Please ensure backend is running.";
+        }
       }
       state = state.copyWith(isAuthenticated: false, user: null, isLoading: false, error: errorMsg);
       return false;

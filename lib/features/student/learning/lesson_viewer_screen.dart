@@ -12,7 +12,6 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_button.dart';
-import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/services/theme_service.dart';
 
